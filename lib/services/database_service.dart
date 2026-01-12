@@ -75,7 +75,7 @@ class DatabaseService {
     await db.insert(
       tableSamples,
       sample.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 
@@ -87,7 +87,7 @@ class DatabaseService {
       batch.insert(
         tableSamples,
         sample.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: ConflictAlgorithm.ignore,
       );
     }
     await batch.commit(noResult: true);

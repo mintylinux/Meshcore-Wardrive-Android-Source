@@ -30,7 +30,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  static const String appVersion = '1.0.11';
+  static const String appVersion = '1.0.12';
   
   final LocationService _locationService = LocationService();
   final MapController _mapController = MapController();
@@ -43,6 +43,7 @@ class _MapScreenState extends State<MapScreen> {
   
   String _colorMode = 'quality';
   bool _showSamples = false;
+  bool _showGpsSamples = true; // Show GPS-only samples (null pingSuccess)
   bool _showEdges = true;
   bool _showRepeaters = true;
   bool _autoPingEnabled = false;
@@ -135,6 +136,8 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {
         _currentPosition = pos;
       });
+      // Move map to user's current location on startup
+      _mapController.move(pos, 13.0);
     }
   }
 
@@ -498,7 +501,26 @@ class _MapScreenState extends State<MapScreen> {
   Widget _buildSampleLayer() {
     if (_samples.isEmpty) return const SizedBox.shrink();
     
-    final markers = _samples.map((sample) {
+    // Filter samples based on settings
+    final filteredSamples = _samples.where((sample) {
+      // If showing GPS samples is disabled, hide samples with null pingSuccess
+      if (!_showGpsSamples && sample.pingSuccess == null) {
+        return false;
+      }
+      return true;
+    }).toList();
+    
+    final markers = filteredSamples.map((sample) {
+      // Determine color based on ping result
+      Color markerColor;
+      if (sample.pingSuccess == true) {
+        markerColor = Colors.green; // Successful ping
+      } else if (sample.pingSuccess == false) {
+        markerColor = Colors.red; // Failed ping
+      } else {
+        markerColor = Colors.blue; // GPS-only sample
+      }
+      
       return Marker(
         point: sample.position,
         width: 16,
@@ -509,8 +531,12 @@ class _MapScreenState extends State<MapScreen> {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.6),
+              color: markerColor.withValues(alpha: 0.7),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: markerColor.withValues(alpha: 0.9),
+                width: 1,
+              ),
             ),
           ),
         ),
@@ -1568,6 +1594,11 @@ class _MapScreenState extends State<MapScreen> {
     final successRate = total > 0 ? ((coverage.received / total) * 100).toStringAsFixed(0) : 'N/A';
     final reliabilityText = total > 0 ? '$successRate%' : 'No ping data';
     
+    // Round weighted values to 1 decimal place for display
+    final receivedDisplay = coverage.received.toStringAsFixed(1);
+    final lostDisplay = coverage.lost.toStringAsFixed(1);
+    final totalDisplay = total.toStringAsFixed(1);
+    
     // Get unique repeater prefixes (first 2 chars)
     final uniquePrefixes = coverage.repeaters.map((id) => id.substring(0, id.length >= 2 ? 2 : id.length)).toSet().toList()..sort();
     final repeaterText = uniquePrefixes.isNotEmpty ? uniquePrefixes.join(', ') : 'None';
@@ -1583,7 +1614,7 @@ class _MapScreenState extends State<MapScreen> {
             Row(
               children: [
                 const Text('Samples: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('$total'),
+                Text(totalDisplay),
               ],
             ),
             const SizedBox(height: 8),
@@ -1597,10 +1628,14 @@ class _MapScreenState extends State<MapScreen> {
             Row(
               children: [
                 const Text('Received: ', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                Text('${coverage.received}'),
-                const SizedBox(width: 16),
+                Flexible(child: Text(receivedDisplay)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
                 const Text('Lost: ', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                Text('${coverage.lost}'),
+                Flexible(child: Text(lostDisplay)),
               ],
             ),
             if (coverage.received > 0)

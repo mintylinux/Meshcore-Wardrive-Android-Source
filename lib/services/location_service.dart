@@ -1,13 +1,14 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/models.dart';
-import '../utils/geohash_utils.dart';
 import 'database_service.dart';
 import 'lora_companion_service.dart';
+import '../utils/geohash_utils.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'persistent_debug_logger.dart';
 
 class LocationService {
@@ -297,7 +298,7 @@ class LocationService {
 
     // Only save GPS sample if auto-ping is disabled or no ping triggered
     final sample = Sample(
-      id: '${DateTime.now().millisecondsSinceEpoch}_$geohash',
+      id: _generateUniqueId(),
       position: latLng,
       timestamp: DateTime.now(),
       path: null,
@@ -354,7 +355,7 @@ class LocationService {
       
       // Create a new sample with ping results
       final sample = Sample(
-        id: '${DateTime.now().millisecondsSinceEpoch}_$geohash',
+        id: _generateUniqueId(),
         position: latLng,
         timestamp: DateTime.now(),
         path: nodeId,
@@ -374,7 +375,7 @@ class LocationService {
       print('Error during background ping: $e');
       // Save failed ping result
       final sample = Sample(
-        id: '${DateTime.now().millisecondsSinceEpoch}_$geohash',
+        id: _generateUniqueId(),
         position: latLng,
         timestamp: DateTime.now(),
         path: null,
@@ -434,6 +435,13 @@ class LocationService {
 
   /// Get the debug log file path
   String? get debugLogPath => _logger.logFilePath;
+  
+  /// Generate a unique ID for samples
+  String _generateUniqueId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = Random().nextInt(999999).toString().padLeft(6, '0');
+    return '${timestamp}_$random';
+  }
 
   /// Dispose resources
   void dispose() {
