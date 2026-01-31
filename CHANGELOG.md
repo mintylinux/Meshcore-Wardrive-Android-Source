@@ -13,10 +13,10 @@
   - Useful for analyzing coverage from specific repeaters
 
 ### Fixed
-- **Upload Sites List UI**: Fixed "Manage Upload Sites" dialog expanding as white box down the screen
-  - Removed problematic ConstrainedBox and SingleChildScrollView wrappers
-  - Uses simple Column with mainAxisSize.min for proper sizing
-  - Dialog now stays within its window boundaries
+- **Upload Sites List UI**: Reworked "Manage Upload Sites" as a draggable bottom sheet to prevent overflow on all devices/themes
+  - Replaced AlertDialog with DraggableScrollableSheet bottom sheet (same pattern as Settings)
+  - Scrollable list with Add/Cancel/Save actions pinned at bottom
+  - Eliminates the white panel stretching past the window boundary
 - **Multi-Site Upload Tracking**: Samples can now be uploaded to multiple endpoints independently
   - Each endpoint tracks which samples it has received separately
   - Uploading to default endpoint no longer blocks uploading to custom endpoints
@@ -34,6 +34,8 @@
   - Toggle switches now animate smoothly without closing the dialog
 
 ### Improved
+- **Disconnect Control**: Added disconnect button (link_off) next to Manual Ping when connected
+- **Setting Label**: Renamed "Lock Rotation to North" to "Lock Map Rotation" for clarity
 - **Minimized Control Panel**: Reduced control panel to single compact row
   - Shows connection status, battery level, sample count, and Connect/Manual Ping button
   - Cleaner map view with more screen space for the map
