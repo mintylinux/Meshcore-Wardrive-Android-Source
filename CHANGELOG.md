@@ -2,6 +2,16 @@
 
 ## v1.0.25 - 2026-01-31
 
+### Added
+- **Multi-Site Upload**: Upload your data to multiple endpoints simultaneously
+  - New "Manage Upload Sites" option in settings to add/remove custom upload endpoints
+  - Select which sites to upload to with checkboxes
+  - Shows individual progress and results for each site
+  - Default meshcore.live endpoint included by default
+- **Apply Whitelist to Edges**: New toggle to optionally filter edges by Include Only Repeaters whitelist
+  - When enabled, edges only show connections to whitelisted repeaters
+  - Useful for analyzing coverage from specific repeaters
+
 ### Fixed
 - **Upload Reliability**: Fixed upload failures with large datasets (1000+ samples)
   - Uploads now split into batches of 100 samples to prevent timeouts
@@ -10,8 +20,26 @@
   - Progress feedback: UI shows "Uploading batch X of Y" during multi-batch uploads
   - Better error messages: shows which batch failed and why
   - Resolves "Failed to Upload Error: 500" issues reported by users
+- **Toggle Animations**: Fixed settings dialog toggle switches not animating when clicked
+  - Wrapped settings dialog in StatefulBuilder for proper state updates
+  - Toggle switches now animate smoothly without closing the dialog
 
 ### Improved
+- **Minimized Control Panel**: Reduced control panel to single compact row
+  - Shows connection status, battery level, sample count, and Connect/Manual Ping button
+  - Cleaner map view with more screen space for the map
+- **Reorganized Settings**: Moved Export, Import, and Clear Map buttons from main screen to settings menu
+  - New "Data Management" section in settings for better organization
+  - Main screen is now less cluttered
+- **Enhanced Clear Confirmation**: Clear Map dialog now shows exact sample count and warns about permanent deletion
+- **Repeater Display**: Combined live (LoRa service) and historical (aggregation) repeaters
+  - Repeaters remain visible on map even when disconnected from LoRa device
+  - Shows complete picture of discovered repeaters
+- **Privacy Enhancement**: Limited web map maximum precision to street-level (7, ~153m)
+  - Removed building-level precision option (8, ~38m) for user privacy
+  - Added privacy note explaining the limitation
+- **Edge Filtering**: Edges from repeaters at position 0,0 are now filtered out
+  - Prevents invalid edges from unconfigured/mobile repeaters
 - Upload process is now more reliable for users with days of accumulated data
 - Clear progress indication during large uploads
 - Failed uploads now provide specific error details for troubleshooting
