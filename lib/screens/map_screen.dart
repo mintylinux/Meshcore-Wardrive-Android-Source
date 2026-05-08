@@ -2065,7 +2065,7 @@ $placemarks  </Document>
 
     // Show result
     if (pingSuccess) {
-      _showSnackBar('✅ Ping heard by ${result.nodeId}');
+      _showSnackBar('✅ Ping heard by ${result.nodeId!.length > 8 ? result.nodeId!.substring(0,8) : result.nodeId}');
     } else if (result.status == PingStatus.timeout) {
       _showSnackBar('❌ No response - dead zone');
     } else {
