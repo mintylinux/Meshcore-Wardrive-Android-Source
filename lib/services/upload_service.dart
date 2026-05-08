@@ -34,15 +34,16 @@ class UploadService {
       'id': sample.id,
       'nodeId': (sample.path == null || sample.path!.isEmpty)
           ? 'Unknown'
-          : (sample.path!.length > 8 ? sample.path!.substring(0, 8).toUpperCase() : sample.path!.toUpperCase()),
+          : (sample.path!.toUpperCase()),
+///        : (sample.path!.length > 8 ? sample.path!.substring(0, 8).toUpperCase() : sample.path!.toUpperCase()),
       'repeaterName': (() {
         final name = (sample.path != null && repeaterNames != null)
             ? repeaterNames![sample.path]
             : null;
         if (name != null && name.isNotEmpty) return name;
         if (sample.path == null || sample.path!.isEmpty) return 'Unknown';
-        final short = sample.path!.length > 8 ? sample.path!.substring(0,8).toUpperCase() : sample.path!.toUpperCase();
-        return short;
+///        final short = sample.path!.length > 8 ? sample.path!.substring(0,8).toUpperCase() : sample.path!.toUpperCase();
+        return sample.path!.toUpperCase();
       })(),
       'latitude': sample.position.latitude,
       'longitude': sample.position.longitude,
