@@ -3791,7 +3791,7 @@ $placemarks  </Document>
     
     // Fall back to checking LoRa service's contact cache
     final loraRepeater = _locationService.loraCompanion.getRepeaterLocation(fullId!);
-    return loraRepeater?.name ?? fullId; // Return full ID if no name
+    return loraRepeater?.name ?? null; // Return full ID if no name
   }
   
   void _showSampleInfo(Sample sample) {
