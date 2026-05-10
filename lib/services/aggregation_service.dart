@@ -140,7 +140,8 @@ class AggregationService {
     for (final coverage in hashToCoverage.values) {
       // Only create edges for repeaters that actually responded in this coverage area
       for (final repeaterId in coverage.repeaters) {
-        final repeaterData = idToRepeaters[repeaterId];
+        final shortRepeaterId = repeaterId.length >= 8 ? repeaterId.substring(0, 8) : repeaterId;
+        final repeaterData = idToRepeaters[shortRepeaterId];
         if (repeaterData != null) {
           final repeater = repeaterData['repeater'] as Repeater;
           // Skip repeaters with location set to 0,0 (invalid/unknown location)
