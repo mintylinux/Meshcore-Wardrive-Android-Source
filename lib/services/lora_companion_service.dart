@@ -158,9 +158,7 @@ class LoRaCompanionService {
   /// Get device name for display (from BT device)
   String getDeviceName() {
     if (_bluetoothDevice != null) {
-      return _bluetoothDevice!.platformName.isNotEmpty 
-          ? _bluetoothDevice!.platformName 
-          : _bluetoothDevice!.remoteId.toString();
+      return getBluetoothDisplayName(_bluetoothDevice!);
     }
     return 'Unknown';
   }
@@ -169,32 +167,85 @@ class LoRaCompanionService {
   // DEVICE CONNECTION - BLUETOOTH
   // ============================================================================
 
+  /// Nordic UART Service — MeshCore / Heltec BLE
+  static const _nusServiceUuid = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+
+  /// Display names from the last scan (advName is often set when platformName is empty)
+  final Map<String, String> _bluetoothDisplayNames = {};
+
+  /// BLE device name for UI
+  String getBluetoothDisplayName(BluetoothDevice device) {
+    final id = device.remoteId.toString();
+    if (_bluetoothDisplayNames.containsKey(id)) {
+      return _bluetoothDisplayNames[id]!;
+    }
+    if (device.platformName.isNotEmpty) return device.platformName;
+    return id;
+  }
+
+  static bool _isLoRaBluetoothName(String name) {
+    final n = name.toLowerCase();
+    return n.contains('lora') ||
+        n.contains('meshtastic') ||
+        n.contains('meshcore') ||
+        n.contains('whisper') ||
+        n.contains('t-beam') ||
+        n.contains('heltec');
+  }
+
+  void _rememberBluetoothDisplayName(BluetoothDevice device, String name) {
+    if (name.isNotEmpty) {
+      _bluetoothDisplayNames[device.remoteId.toString()] = name;
+    }
+  }
+
   /// Scan for Bluetooth LoRa devices
   Future<List<BluetoothDevice>> scanBluetoothDevices({
     Duration timeout = const Duration(seconds: 10),
   }) async {
     final devices = <BluetoothDevice>[];
-    
+    final seen = <String>{};
+
+    void addDevice(BluetoothDevice device, {String? displayName}) {
+      final id = device.remoteId.toString();
+      if (seen.contains(id)) return;
+      seen.add(id);
+      devices.add(device);
+      final name = displayName ??
+          (device.platformName.isNotEmpty ? device.platformName : null);
+      if (name != null) _rememberBluetoothDisplayName(device, name);
+    }
+
     try {
       if (await FlutterBluePlus.isSupported == false) {
         throw Exception('Bluetooth not supported');
+      }
+
+      // Bonded devices with NUS (Android: bonded; name may be in platformName)
+      try {
+        final bonded = await FlutterBluePlus.systemDevices([
+          Guid(_nusServiceUuid),
+        ]);
+        for (final device in bonded) {
+          final name = device.platformName;
+          if (name.isEmpty || _isLoRaBluetoothName(name)) {
+            addDevice(device, displayName: name.isNotEmpty ? name : null);
+          }
+        }
+      } catch (e) {
+        print('systemDevices: $e');
       }
 
       await FlutterBluePlus.startScan(timeout: timeout);
 
       final subscription = FlutterBluePlus.scanResults.listen((results) {
         for (ScanResult r in results) {
-          // Look for LoRa/Meshtastic/WhisperOS devices
-          final name = r.device.platformName.toLowerCase();
-          if (name.contains('lora') ||
-              name.contains('meshtastic') ||
-              name.contains('meshcore') ||
-              name.contains('whisper') ||
-              name.contains('t-beam') ||
-              name.contains('heltec')) {
-            if (!devices.contains(r.device)) {
-              devices.add(r.device);
-            }
+          final platformName = r.device.platformName;
+          final advName = r.advertisementData.advName;
+          if (_isLoRaBluetoothName(platformName) ||
+              _isLoRaBluetoothName(advName)) {
+            final displayName = platformName.isNotEmpty ? platformName : advName;
+            addDevice(r.device, displayName: displayName);
           }
         }
       });
@@ -206,7 +257,7 @@ class LoRaCompanionService {
       return devices;
     } catch (e) {
       print('Error scanning Bluetooth: $e');
-      return [];
+      return devices;
     }
   }
 
@@ -272,9 +323,7 @@ class LoRaCompanionService {
 
       if (_txCharacteristic != null && _rxCharacteristic != null) {
         _connectionType = ConnectionType.bluetooth;
-        _deviceName = device.platformName.isNotEmpty 
-            ? device.platformName 
-            : device.remoteId.toString();
+        _deviceName = getBluetoothDisplayName(device);
         _connectedDeviceId = device.remoteId.toString().replaceAll(':', '').toUpperCase();
         print('Connected to LoRa device via Bluetooth (ID: $_connectedDeviceId)');
         
