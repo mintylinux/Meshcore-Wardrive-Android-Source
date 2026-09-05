@@ -971,7 +971,7 @@ class LoRaCompanionService {
       if (completer != null && !completer.isCompleted) {
         // Add this response to the list
         _pingResponses[tag]?.add({
-          'nodeId': pubkeyShort,
+          'nodeId': pubkey,
           'snr': snr,
           'rssi': rssi,
           'node_type': nodeType,

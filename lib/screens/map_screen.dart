@@ -2367,7 +2367,7 @@ $placemarks  </Document>
 
     // Show result
     if (pingSuccess) {
-      _showSnackBar('✅ Ping heard by ${result.nodeId}');
+      _showSnackBar('✅ Ping heard by ${result.nodeId!.length > 8 ? result.nodeId!.substring(0,8) : result.nodeId}');
     } else if (result.status == PingStatus.timeout) {
       _showSnackBar('❌ No response - dead zone');
     } else {
@@ -4228,7 +4228,7 @@ $placemarks  </Document>
     
     // Fall back to checking LoRa service's contact cache
     final loraRepeater = _locationService.loraCompanion.getRepeaterLocation(fullId!);
-    return loraRepeater?.name ?? fullId; // Return full ID if no name
+    return loraRepeater?.name ?? null; // Return full ID if no name
   }
   
   void _showSampleInfo(Sample sample) {
