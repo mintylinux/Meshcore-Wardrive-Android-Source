@@ -2483,8 +2483,10 @@ $placemarks  </Document>
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: devices.map((device) {
+              final name = _locationService.loraCompanion
+                  .getBluetoothDisplayName(device);
               return ListTile(
-                title: Text(device.platformName),
+                title: Text(name),
                 subtitle: Text(device.remoteId.toString()),
                 onTap: () => Navigator.pop(context, device),
               );
@@ -2494,7 +2496,9 @@ $placemarks  </Document>
       );
 
       if (selected != null) {
-        _showSnackBar('Connecting to ${selected.platformName}...');
+        _showSnackBar(
+          'Connecting to ${_locationService.loraCompanion.getBluetoothDisplayName(selected)}...',
+        );
         
         final connected = await _locationService.loraCompanion.connectBluetooth(selected);
         if (connected) {
